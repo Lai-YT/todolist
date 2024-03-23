@@ -13,6 +13,12 @@ import (
 
 var db, _ = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
 
+type TodoItemModel struct {
+	Id          int `gorm:"primary_key"`
+	Description string
+	Completed   bool // Whether the todo item is done or not.
+}
+
 // Healthz responds with a simple health check message to the client every time it's invoked.
 func Healthz(writer http.ResponseWriter, request *http.Request) {
 	log.Info("API Health is OK")
@@ -30,6 +36,9 @@ func init() {
 func main() {
 	// Close the database connection when the main function ends.
 	defer db.Close()
+	db.Debug().DropTableIfExists(&TodoItemModel{})
+	db.Debug().AutoMigrate(&TodoItemModel{})
+
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()
 	router.HandleFunc("/healthz", Healthz).Methods("GET")
