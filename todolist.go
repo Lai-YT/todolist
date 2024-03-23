@@ -1,14 +1,14 @@
 package main
 
 import (
+	"encoding/json"
+	_ "github.com/go-sql-driver/mysql" // We do not intend to use the variable.
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mysql"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
-	// We do not intend to use the variable.
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 )
 
 var db, _ = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
@@ -24,6 +24,21 @@ func Healthz(writer http.ResponseWriter, request *http.Request) {
 	log.Info("API Health is OK")
 	writer.Header().Set("Content-Type", "application/json")
 	io.WriteString(writer, `{"alive": true}`)
+}
+
+// CreateItem creates a new TodoItem in the database and returns the newly created item to the client to ensure that the operation was successful.
+//
+// The description of the TodoItem is passed as a form parameter named "description".
+//
+//	{ "description": "string" }
+func CreateItem(writer http.ResponseWriter, request *http.Request) {
+	description := request.FormValue("description")
+	log.WithFields(log.Fields{"description": description}).Info("Add new TodoItem. Saving to database.")
+	todo := &TodoItemModel{Description: description, Completed: false}
+	db.Create(&todo)
+	result := db.Last(&todo)
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(result.Value)
 }
 
 // init is executed when the program first begins (before main).
@@ -42,5 +57,6 @@ func main() {
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()
 	router.HandleFunc("/healthz", Healthz).Methods("GET")
+	router.HandleFunc("/todo", CreateItem).Methods("POST")
 	http.ListenAndServe(":8000", router)
 }
