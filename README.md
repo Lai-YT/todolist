@@ -19,6 +19,8 @@ The API server uses:
 - Request routing using [gorilla/mux](https://github.com/gorilla/mux)
 - [Logrus](https://github.com/sirupsen/logrus) for logging
 
+There's also a frontend for this project, which was initially created by [themaxsandelin](https://github.com/themaxsandelin), modified by [sdil](https://github.com/sdil), and finally tailored by me. You can find it at [Lai-YT/todolist-frontend](https://github.com/Lai-YT/todolist-frontend).
+
 ## License
 
 Todolist is licensed under the [MIT license](LICENSE).
