@@ -2,13 +2,15 @@ package main
 
 import (
 	"encoding/json"
+	"io"
+	"net/http"
+	"strconv"
+
 	_ "github.com/go-sql-driver/mysql" // We do not intend to use the variable.
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	log "github.com/sirupsen/logrus"
-	"io"
-	"net/http"
 )
 
 var db, _ = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
@@ -41,6 +43,82 @@ func CreateItem(writer http.ResponseWriter, request *http.Request) {
 	json.NewEncoder(writer).Encode(result.Value)
 }
 
+// UpdateItem updates the completed status of a TodoItem in the database.
+//
+// The completed status is passed as a form parameter named "completed".
+//
+//	{ "completed": bool }
+//
+// If the operation was successful:
+//
+//	{"updated": true}
+//
+// If the TodoItem was not found in the database:
+//
+//	{"updated": false, "error": "TodoItem not found"}
+func UpdateItem(writer http.ResponseWriter, request *http.Request) {
+	// Get the ID from the URL.
+	vars := mux.Vars(request)
+	id, _ := strconv.Atoi(vars["id"])
+
+	todo := &TodoItemModel{}
+	result := db.First(&todo, id)
+	writer.Header().Set("Content-Type", "application/json")
+	if result.Error != nil {
+		log.Warn("TodoItem not found in database")
+		io.WriteString(writer, `{"updated": false, "error": "TodoItem not found"}`)
+	} else {
+		completed, _ := strconv.ParseBool(request.FormValue("completed"))
+		log.WithFields(log.Fields{"Id": id, "Completed": completed}).Info("Updating TodoItem")
+		todo.Completed = completed
+		db.Save(&todo)
+		io.WriteString(writer, `{"updated": true}`)
+	}
+}
+
+// DeleteItem deletes a TodoItem from the database.
+// If the operation was successful:
+//
+//	{"deleted": true}
+//
+// If the TodoItem was not found in the database:
+//
+//	{"deleted": false, "error": "TodoItem not found"}
+func DeleteItem(writer http.ResponseWriter, request *http.Request) {
+	// Get the ID from the URL.
+	vars := mux.Vars(request)
+	id, _ := strconv.Atoi(vars["id"])
+
+	todo := &TodoItemModel{}
+	result := db.First(&todo, id)
+	writer.Header().Set("Content-Type", "application/json")
+	if result.Error != nil {
+		log.Warn("TodoItem not found in database")
+		io.WriteString(writer, `{"deleted": false, "error": "TodoItem not found"}`)
+	} else {
+		log.WithFields(log.Fields{"Id": id}).Info("Deleting TodoItem")
+		db.Delete(&todo)
+		io.WriteString(writer, `{"deleted": true}`)
+	}
+}
+
+// GetItems returns all TodoItems from the database.
+// The completed status of the TodoItems can be filtered by passing a query parameter named "completed".
+// If the query parameter "completed" is not passed, all TodoItems are returned.
+func GetItems(writer http.ResponseWriter, request *http.Request) {
+	completed, err := strconv.ParseBool(request.URL.Query().Get("completed"))
+	var completedTodoItems []TodoItemModel
+	if err == nil {
+		log.Info("Get TodoItems, completed=", completed)
+		db.Where("completed = ?", completed).Find(&completedTodoItems)
+	} else {
+		log.Info("Get TodoItems")
+		db.Find(&completedTodoItems)
+	}
+	writer.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(writer).Encode(completedTodoItems)
+}
+
 // init is executed when the program first begins (before main).
 func init() {
 	// Set up our logger settings.
@@ -56,7 +134,11 @@ func main() {
 
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()
+	// NOTE: The endpoint are not entirely the same as the blog post.
 	router.HandleFunc("/healthz", Healthz).Methods("GET")
 	router.HandleFunc("/todo", CreateItem).Methods("POST")
+	router.HandleFunc("/todo", GetItems).Methods("GET")
+	router.HandleFunc("/todo/{id}", UpdateItem).Methods("POST")
+	router.HandleFunc("/todo/{id}", DeleteItem).Methods("DELETE")
 	http.ListenAndServe(":8000", router)
 }
