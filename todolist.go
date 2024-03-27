@@ -8,6 +8,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	"todolist/core"
 	"todolist/endpoint"
+	"todolist/storage"
 )
 
 // init is executed when the program first begins (before main).
@@ -18,8 +19,10 @@ func init() {
 }
 
 func main() {
-	core.InitDb()
-	defer core.CloseDb()
+	accessor := &storage.DatabaseAccessor{}
+	accessor.InitDb()
+	defer accessor.CloseDb()
+	core.SetAccessor(accessor)
 
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()

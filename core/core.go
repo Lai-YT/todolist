@@ -3,31 +3,15 @@ package core
 import (
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	log "github.com/sirupsen/logrus"
 )
 
-var db *gorm.DB
+var accessor StorageAccessor
 
-// InitDb initializes the database connection and creates the TodoItemModel table.
-func InitDb() {
-	var err error
-	db, err = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
-	if err != nil {
-		log.Fatal(err)
-	}
-	// TODO: Keep the table.
-	db.Debug().DropTableIfExists(&TodoItemModel{})
-	db.Debug().AutoMigrate(&TodoItemModel{})
+func SetAccessor(sa StorageAccessor) {
+	accessor = sa
 }
-
-// CloseDb closes the database connection.
-func CloseDb() {
-	db.Close()
-}
-
-// NOTE: We separate the core data structure with the database model.
 
 type TodoItem struct {
 	Id          int
@@ -35,21 +19,14 @@ type TodoItem struct {
 	Completed   bool
 }
 
-type TodoItemModel struct {
-	Id          int `gorm:"primary_key"`
-	Description string
-	Completed   bool
-}
-
 func CreateItem(description string) TodoItem {
-	log.WithFields(log.Fields{"description": description}).Info("Adding new TodoItem. Saving to database.")
-
-	db.Create(&TodoItemModel{Description: description, Completed: false})
-
-	// We access it from the database to get the Id.
-	var todoModel TodoItemModel
-	db.Last(&todoModel)
-	return TodoItem{Id: todoModel.Id, Description: todoModel.Description, Completed: todoModel.Completed}
+	log.WithFields(log.Fields{"description": description}).Info("CORE: Adding new TodoItem.")
+	todo := TodoItem{Description: description, Completed: false}
+	_, err := accessor.Create(&todo)
+	if err != nil {
+		log.Fatal("CORE: ", err)
+	}
+	return todo
 }
 
 type TodoItemNotFoundError struct {
@@ -61,39 +38,43 @@ func (e TodoItemNotFoundError) Error() string {
 }
 
 func UpdateItem(id int, completed bool) (TodoItem, error) {
-	var todoModel TodoItemModel
-	result := db.First(&todoModel, id)
-	if result.Error != nil {
-		log.Warn("TodoItem not found in database")
-		return TodoItem{}, TodoItemNotFoundError{Id: id}
+	todos := accessor.Read(func(todo TodoItem) bool {
+		return todo.Id == id
+	})
+	if len(todos) == 0 {
+		err := TodoItemNotFoundError{Id: id}
+		log.Warn("CORE: ", err)
+		return TodoItem{}, err
 	}
+	if len(todos) > 1 {
+		log.Fatal("CORE: Multiple TodoItems with the same id.")
+	}
+	todo := todos[0]
+	todo.Completed = completed
 
-	log.WithFields(log.Fields{"id": id, "completed": completed}).Info("Updating TodoItem.")
-	todoModel.Completed = completed
-	db.Save(&todoModel)
-	return TodoItem{Id: todoModel.Id, Description: todoModel.Description, Completed: todoModel.Completed}, nil
+	log.WithFields(log.Fields{"id": id, "completed": completed}).Info("CORE: Updating TodoItem.")
+	err := accessor.Update(todo)
+	if err != nil {
+		log.Warn("CORE: ", err)
+		return TodoItem{}, err
+	}
+	return todo, nil
 }
 
 func DeleteItem(id int) error {
-	var todoModel TodoItemModel
-	result := db.First(&todoModel, id)
-	if result.Error != nil {
-		log.Warn("TodoItem not found in database")
-		return TodoItemNotFoundError{Id: id}
+	log.WithFields(log.Fields{"id": id}).Info("CORE: Deleting TodoItem.")
+	err := accessor.Delete(id)
+	if err != nil {
+		log.Warn("CORE: ", err)
+		return err
 	}
-
-	log.WithFields(log.Fields{"id": id}).Info("Deleting TodoItem.")
-	db.Delete(&todoModel)
 	return nil
 }
 
 func GetItems(completed bool) []TodoItem {
-	log.Info("Get TodoItems, completed=", completed)
-	var todoModels []TodoItemModel
-	db.Where("completed = ?", completed).Find(&todoModels)
-	todoItems := make([]TodoItem, len(todoModels))
-	for i, todoModel := range todoModels {
-		todoItems[i] = TodoItem{Id: todoModel.Id, Description: todoModel.Description, Completed: todoModel.Completed}
-	}
-	return todoItems
+	log.Info("CORE: Getting TodoItems. completed=", completed)
+	todos := accessor.Read(func(todo TodoItem) bool {
+		return todo.Completed == completed
+	})
+	return todos
 }
