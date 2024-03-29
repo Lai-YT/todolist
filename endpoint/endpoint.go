@@ -15,7 +15,10 @@ import (
 func Healthz(writer http.ResponseWriter, request *http.Request) {
 	log.Info("API Health is OK")
 	writer.Header().Set("Content-Type", "application/json")
-	io.WriteString(writer, `{"alive": true}`)
+	_, err := io.WriteString(writer, `{"alive": true}`)
+	if err != nil {
+		log.Error("Error writing response to client")
+	}
 }
 
 // CreateItem creates a new TodoItem in the database and returns the newly created item to the client to ensure that the operation was successful.
@@ -29,7 +32,10 @@ func CreateItem(writer http.ResponseWriter, request *http.Request) {
 	description := request.FormValue("description")
 	todo := core.CreateItem(description)
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(todo)
+	err := json.NewEncoder(writer).Encode(todo)
+	if err != nil {
+		log.Error("Error encoding response")
+	}
 }
 
 // UpdateItem updates the completed status of a TodoItem in the database.
@@ -59,7 +65,10 @@ func UpdateItem(writer http.ResponseWriter, request *http.Request) {
 		response = `{"updated": true}`
 	}
 	writer.Header().Set("Content-Type", "application/json")
-	io.WriteString(writer, response)
+	_, err = io.WriteString(writer, response)
+	if err != nil {
+		log.Error("Error writing response to client")
+	}
 }
 
 // DeleteItem deletes a TodoItem from the database.
@@ -83,7 +92,10 @@ func DeleteItem(writer http.ResponseWriter, request *http.Request) {
 		response = `{"deleted": true}`
 	}
 	writer.Header().Set("Content-Type", "application/json")
-	io.WriteString(writer, response)
+	_, err = io.WriteString(writer, response)
+	if err != nil {
+		log.Error("Error writing response to client")
+	}
 }
 
 // GetItems returns all TodoItems from the database.
@@ -102,5 +114,8 @@ func GetItems(writer http.ResponseWriter, request *http.Request) {
 	}
 
 	writer.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(writer).Encode(todos)
+	err := json.NewEncoder(writer).Encode(todos)
+	if err != nil {
+		log.Error("Error encoding response")
+	}
 }
