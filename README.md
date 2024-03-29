@@ -1,5 +1,15 @@
 <h1 align="center"><i>Todolist</i></h1>
 
+<div align="center">
+
+[![CI](https://github.com/Lai-YT/todolist/actions/workflows/ci.yml/badge.svg)](https://github.com/Lai-YT/todolist/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/Lai-YT/todolist/graph/badge.svg?token=VMJZ7U806J)](https://codecov.io/gh/Lai-YT/todolist)
+[![GitHub Issues Open](https://img.shields.io/github/issues/Lai-YT/todolist.svg)](https://github.com/Lai-YT/todolist/issues)
+[![GitHub Pull Requests](https://img.shields.io/github/issues-pr/Lai-YT/todolist.svg)](https://github.com/Lai-YT/todolist/pulls)
+[![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+</div>
+
 ---
 
 <p align="center">
