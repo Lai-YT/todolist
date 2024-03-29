@@ -5,15 +5,16 @@ PACKAGES ?= $(shell $(GO) list ./...)
 GOFILES := $(shell find . -name "*.go")
 TESTTAGS ?= "-test.shuffle=on"
 COVERPROFILE ?= coverage.out
+COVEREXCLUDE ?= "mock"
 
 .PHONY: test
 test:
 	$(GO) test $(TESTTAGS) -v $(PACKAGES)
 
-# TODO: Exclude mock files from coverage.
 .PHONY: test-coverage
 test-coverage:
-	$(GO) test $(TESTTAGS) -v $(PACKAGES) -coverprofile=$(COVERPROFILE)
+	$(GO) test $(TESTTAGS) -v $(PACKAGES) -coverprofile=/tmp/$(COVERPROFILE)
+	cat /tmp/$(COVERPROFILE) | grep -v -E $(COVEREXCLUDE) > $(COVERPROFILE)
 	$(GO) tool cover -func=$(COVERPROFILE)
 
 .PHONY: fmt
