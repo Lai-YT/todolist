@@ -1,10 +1,9 @@
 package storage
 
 import (
-	_ "github.com/go-sql-driver/mysql"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 	"todolist/core"
 )
 
@@ -21,18 +20,20 @@ type TodoItemModel struct {
 // InitDb initializes the database connection and creates the TodoItemModel table.
 func (dba *DatabaseAccessor) InitDb() {
 	var err error
-	dba.db, err = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
+	dba.db, err = gorm.Open(mysql.Open("root:root@/todolist?charset=utf8&parseTime=True&loc=Local"), &gorm.Config{})
+	// dba.db, err = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
 		log.Fatal("DB: ", err)
 	}
 	// TODO: Keep the table.
-	dba.db.Debug().DropTableIfExists(&TodoItemModel{})
+	dba.db.Debug().Migrator().DropTable(&TodoItemModel{})
 	dba.db.Debug().AutoMigrate(&TodoItemModel{})
 }
 
 // CloseDb closes the database connection.
 func (dba *DatabaseAccessor) CloseDb() {
-	dba.db.Close()
+	// NOTE: Starting from GORM v2, the db.Close() method is not available as it supports connection pooling.
+	dba.db = nil
 }
 
 func (dba *DatabaseAccessor) Create(todo *core.TodoItem) (id int, e error) {

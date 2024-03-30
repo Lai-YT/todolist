@@ -2,8 +2,6 @@ package core
 
 import (
 	"fmt"
-	_ "github.com/go-sql-driver/mysql"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	log "github.com/sirupsen/logrus"
 )
 
