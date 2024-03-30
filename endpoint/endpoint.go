@@ -11,6 +11,12 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var theCore core.Core
+
+func SetCore(c core.Core) {
+	theCore = c
+}
+
 // Healthz responds with a simple health check message to the client every time it's invoked.
 func Healthz(writer http.ResponseWriter, request *http.Request) {
 	log.Info("API Health is OK")
@@ -30,7 +36,7 @@ func Healthz(writer http.ResponseWriter, request *http.Request) {
 // The response will be the newly created TodoItem.
 func CreateItem(writer http.ResponseWriter, request *http.Request) {
 	description := request.FormValue("description")
-	todo := core.CreateItem(description)
+	todo := theCore.CreateItem(description)
 	writer.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(writer).Encode(todo)
 	if err != nil {
@@ -56,7 +62,7 @@ func UpdateItem(writer http.ResponseWriter, request *http.Request) {
 	id, _ := strconv.Atoi(vars["id"])
 	completed, _ := strconv.ParseBool(request.FormValue("completed"))
 
-	_, err := core.UpdateItem(id, completed)
+	_, err := theCore.UpdateItem(id, completed)
 
 	var response string
 	if err != nil {
@@ -83,7 +89,7 @@ func DeleteItem(writer http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	id, _ := strconv.Atoi(vars["id"])
 
-	err := core.DeleteItem(id)
+	err := theCore.DeleteItem(id)
 
 	var response string
 	if err != nil {
@@ -107,10 +113,10 @@ func GetItems(writer http.ResponseWriter, request *http.Request) {
 	var todos []core.TodoItem
 	// If the query parameter "completed" is not passed, all TodoItems are returned.
 	if unspecified != nil {
-		todos = core.GetItems(true)
-		todos = append(todos, core.GetItems(false)...)
+		todos = theCore.GetItems(true)
+		todos = append(todos, theCore.GetItems(false)...)
 	} else {
-		todos = core.GetItems(completed)
+		todos = theCore.GetItems(completed)
 	}
 
 	writer.Header().Set("Content-Type", "application/json")

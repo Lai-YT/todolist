@@ -22,7 +22,8 @@ func main() {
 	accessor := &storage.DatabaseAccessor{}
 	accessor.InitDb()
 	defer accessor.CloseDb()
-	core.SetAccessor(accessor)
+	theCore := core.NewCore(accessor)
+	endpoint.SetCore(theCore)
 
 	log.Info("Starting Todolist API server")
 	router := mux.NewRouter()

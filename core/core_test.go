@@ -15,12 +15,7 @@ func TestMain(m *testing.M) {
 	// So that we don't see log messages during tests.
 	log.SetOutput(io.Discard)
 	code := m.Run()
-	teardown()
 	os.Exit(code)
-}
-
-func teardown() {
-	SetAccessor(nil)
 }
 
 // TestCreateItem Given a description and the storage accessor returns an id, when CreateItem is called, then the item is created and returned with the id set.
@@ -28,7 +23,7 @@ func TestCreateItem(t *testing.T) {
 	// arrange: mock storage accessor
 	ctrl := gomock.NewController(t)
 	mockAccessor := NewMockStorageAccessor(ctrl)
-	SetAccessor(mockAccessor)
+	theCore := NewCore(mockAccessor)
 	mockAccessor.EXPECT().
 		Create(gomock.Any()).
 		DoAndReturn(func(item *TodoItem) (int, error) {
@@ -39,7 +34,7 @@ func TestCreateItem(t *testing.T) {
 
 	// act
 	want := TodoItem{Id: 1, Description: "some description", Completed: false}
-	got := CreateItem(want.Description)
+	got := theCore.CreateItem(want.Description)
 
 	// assert
 	if !reflect.DeepEqual(want, got) {
@@ -52,7 +47,7 @@ func TestUpdateItem(t *testing.T) {
 	// arrange: mock storage accessor
 	ctrl := gomock.NewController(t)
 	mockAccessor := NewMockStorageAccessor(ctrl)
-	SetAccessor(mockAccessor)
+	theCore := NewCore(mockAccessor)
 	mockAccessor.EXPECT().
 		Read(gomock.Any()).
 		DoAndReturn(func(func(TodoItem) bool) []TodoItem {
@@ -66,7 +61,7 @@ func TestUpdateItem(t *testing.T) {
 
 	// act:
 	want := TodoItem{Id: 1, Description: "some description", Completed: true}
-	got, err := UpdateItem(want.Id, want.Completed)
+	got, err := theCore.UpdateItem(want.Id, want.Completed)
 
 	// assert: the item should be updated and returned without error
 	if err != nil {
@@ -82,7 +77,7 @@ func TestUpdateItemNotFound(t *testing.T) {
 	// arrange: mock storage accessor
 	ctrl := gomock.NewController(t)
 	mockAccessor := NewMockStorageAccessor(ctrl)
-	SetAccessor(mockAccessor)
+	theCore := NewCore(mockAccessor)
 	mockAccessor.EXPECT().
 		Read(gomock.Any()).
 		DoAndReturn(func(func(TodoItem) bool) []TodoItem {
@@ -92,7 +87,7 @@ func TestUpdateItemNotFound(t *testing.T) {
 	// act:
 	id := 1
 	completed := true
-	_, err := UpdateItem(id, completed)
+	_, err := theCore.UpdateItem(id, completed)
 
 	// assert: an error should be returned
 	if err == nil {
@@ -108,14 +103,14 @@ func TestDeleteItem(t *testing.T) {
 	// arrange: mock storage accessor
 	ctrl := gomock.NewController(t)
 	mockAccessor := NewMockStorageAccessor(ctrl)
-	SetAccessor(mockAccessor)
+	theCore := NewCore(mockAccessor)
 	mockAccessor.EXPECT().
 		Delete(gomock.Any()).
 		Return(nil)
 
 	// act
 	id := 1
-	err := DeleteItem(id)
+	err := theCore.DeleteItem(id)
 
 	// assert
 	if err != nil {
@@ -128,14 +123,14 @@ func TestDeleteItemError(t *testing.T) {
 	// arrange: mock storage accessor
 	ctrl := gomock.NewController(t)
 	mockAccessor := NewMockStorageAccessor(ctrl)
-	SetAccessor(mockAccessor)
+	theCore := NewCore(mockAccessor)
 	mockAccessor.EXPECT().
 		Delete(gomock.Any()).
 		Return(errors.New("error"))
 
 	// act
 	id := 1
-	err := DeleteItem(id)
+	err := theCore.DeleteItem(id)
 
 	// assert
 	if err == nil {
@@ -149,7 +144,7 @@ func TestGetItems(t *testing.T) {
 	// arrange: mock storage accessor
 	ctrl := gomock.NewController(t)
 	mockAccessor := NewMockStorageAccessor(ctrl)
-	SetAccessor(mockAccessor)
+	theCore := NewCore(mockAccessor)
 	mockItems := [2]TodoItem{
 		{Id: 1, Description: "some description", Completed: false},
 		{Id: 2, Description: "another description", Completed: true},
@@ -164,7 +159,7 @@ func TestGetItems(t *testing.T) {
 	// act
 	completed := false
 	want := []TodoItem{mockItems[0]}
-	got := GetItems(completed)
+	got := theCore.GetItems(completed)
 
 	// assert
 	if !reflect.DeepEqual(want, got) {

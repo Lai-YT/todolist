@@ -5,26 +5,29 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-var accessor StorageAccessor
+// Core is the interface that declares the core functionality of the application.
+type Core interface {
+	CreateItem(description string) TodoItem
+	UpdateItem(id int, completed bool) (TodoItem, error)
+	DeleteItem(id int) error
+	GetItems(completed bool) []TodoItem
+}
 
-func SetAccessor(sa StorageAccessor) {
-	accessor = sa
+// NOTE: TheCore is meant to be used as the only implementation of the Core interface. Defining the functionalities as methods allows for being replaced by a mock core in the tests.
+
+// TheCore is the implementation of the Core interface.
+type TheCore struct {
+	accessor StorageAccessor
+}
+
+func NewCore(accessor StorageAccessor) *TheCore {
+	return &TheCore{accessor: accessor}
 }
 
 type TodoItem struct {
 	Id          int
 	Description string
 	Completed   bool
-}
-
-func CreateItem(description string) TodoItem {
-	log.WithFields(log.Fields{"description": description}).Info("CORE: Adding new TodoItem.")
-	todo := TodoItem{Description: description, Completed: false}
-	_, err := accessor.Create(&todo)
-	if err != nil {
-		log.Fatal("CORE: ", err)
-	}
-	return todo
 }
 
 type TodoItemNotFoundError struct {
@@ -35,8 +38,18 @@ func (e TodoItemNotFoundError) Error() string {
 	return fmt.Sprintf("TodoItem with id %d not found", e.Id)
 }
 
-func UpdateItem(id int, completed bool) (TodoItem, error) {
-	todos := accessor.Read(func(todo TodoItem) bool {
+func (c *TheCore) CreateItem(description string) TodoItem {
+	log.WithFields(log.Fields{"description": description}).Info("CORE: Adding new TodoItem.")
+	todo := TodoItem{Description: description, Completed: false}
+	_, err := c.accessor.Create(&todo)
+	if err != nil {
+		log.Fatal("CORE: ", err)
+	}
+	return todo
+}
+
+func (c *TheCore) UpdateItem(id int, completed bool) (TodoItem, error) {
+	todos := c.accessor.Read(func(todo TodoItem) bool {
 		return todo.Id == id
 	})
 	if len(todos) == 0 {
@@ -51,7 +64,7 @@ func UpdateItem(id int, completed bool) (TodoItem, error) {
 	todo.Completed = completed
 
 	log.WithFields(log.Fields{"id": id, "completed": completed}).Info("CORE: Updating TodoItem.")
-	err := accessor.Update(todo)
+	err := c.accessor.Update(todo)
 	if err != nil {
 		log.Warn("CORE: ", err)
 		return TodoItem{}, err
@@ -59,9 +72,9 @@ func UpdateItem(id int, completed bool) (TodoItem, error) {
 	return todo, nil
 }
 
-func DeleteItem(id int) error {
+func (c *TheCore) DeleteItem(id int) error {
 	log.WithFields(log.Fields{"id": id}).Info("CORE: Deleting TodoItem.")
-	err := accessor.Delete(id)
+	err := c.accessor.Delete(id)
 	if err != nil {
 		log.Warn("CORE: ", err)
 		return err
@@ -69,9 +82,9 @@ func DeleteItem(id int) error {
 	return nil
 }
 
-func GetItems(completed bool) []TodoItem {
+func (c *TheCore) GetItems(completed bool) []TodoItem {
 	log.Info("CORE: Getting TodoItems. completed=", completed)
-	todos := accessor.Read(func(todo TodoItem) bool {
+	todos := c.accessor.Read(func(todo TodoItem) bool {
 		return todo.Completed == completed
 	})
 	return todos
