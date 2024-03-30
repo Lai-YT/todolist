@@ -23,11 +23,17 @@ func (dba *DatabaseAccessor) InitDb() {
 	dba.db, err = gorm.Open(mysql.Open("root:root@/todolist?charset=utf8&parseTime=True&loc=Local"), &gorm.Config{})
 	// dba.db, err = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
 	if err != nil {
-		log.Fatal("DB: ", err)
+		panic(err)
 	}
 	// TODO: Keep the table.
-	dba.db.Debug().Migrator().DropTable(&TodoItemModel{})
-	dba.db.Debug().AutoMigrate(&TodoItemModel{})
+	err = dba.db.Debug().Migrator().DropTable(&TodoItemModel{})
+	if err != nil {
+		panic(err)
+	}
+	err = dba.db.Debug().AutoMigrate(&TodoItemModel{})
+	if err != nil {
+		panic(err)
+	}
 }
 
 // CloseDb closes the database connection.
