@@ -20,6 +20,27 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+// expectNoError Fails the test with a fatal error if the given error is not nil.
+func expectNoError(t *testing.T, err error) {
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+}
+
+// expectError Fails the test with a fatal error if the given error is nil.
+func expectError(t *testing.T, err error) {
+	if err == nil {
+		t.Fatalf("expected error, got nil")
+	}
+}
+
+// expectEqual Fails the test with an error if the given values are not equal using the reflect.DeepEqual function.
+func expectEqual(t *testing.T, want, got any) {
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf("want: %v, got: %v", want, got)
+	}
+}
+
 // NOTE: Errors on the database panics because it means the test setup is incorrect.
 
 func (dba *DatabaseAccessor) initTestDb() {
@@ -57,9 +78,7 @@ func TestCreate(t *testing.T) {
 	id, err := dba.Create(&todo)
 
 	// assert
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	expectNoError(t, err)
 	if todo.Id != id {
 		t.Errorf("Id not set on todo item correctly, expected %v, got %v", id, todo.Id)
 	}
@@ -68,9 +87,7 @@ func TestCreate(t *testing.T) {
 	}
 	todosInDb := []TodoItemModel{}
 	dba.db.Find(&todosInDb)
-	if !reflect.DeepEqual(todosInDb, want) {
-		t.Errorf("want: %v, got: %v", want, todosInDb)
-	}
+	expectEqual(t, want, todosInDb)
 }
 
 // TestRead Given some todo items in the database, when Read is called with a where clause that matches on the description of a todo item, then the todo item should be returned.
@@ -93,9 +110,7 @@ func TestRead(t *testing.T) {
 	if len(got) != 1 {
 		t.Fatalf("expected 1 item, got %v", len(got))
 	}
-	if !reflect.DeepEqual(got[0], want) {
-		t.Errorf("want: %v, got: %v", want, got[0])
-	}
+	expectEqual(t, want, got[0])
 }
 
 // TestUpdate Given some todo items in the database, when Update is called with the id of a todo item, then the todo item should be updated.
@@ -115,18 +130,14 @@ func TestUpdate(t *testing.T) {
 	err := dba.Update(updatedTodo)
 
 	// assert
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	expectNoError(t, err)
 	want := []TodoItemModel{
 		{Id: 1, Description: "Test description 1", Completed: false},
 		{Id: targetId, Description: updatedTodo.Description, Completed: updatedTodo.Completed},
 	}
 	todosInDb := []TodoItemModel{}
 	dba.db.Find(&todosInDb)
-	if !reflect.DeepEqual(todosInDb, want) {
-		t.Errorf("want: %v, got: %v", want, todosInDb)
-	}
+	expectEqual(t, want, todosInDb)
 }
 
 // TestUpdateNotFound Given some todo items in the database, when Update is called with an id that does not exist, then an error should be returned.
@@ -145,9 +156,7 @@ func TestUpdateNotFound(t *testing.T) {
 	err := dba.Update(nonExistentTodo)
 
 	// assert
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
+	expectError(t, err)
 }
 
 // TestDelete Given some todo items in the database, when Delete is called with the id of a todo item, then the todo item should be deleted.
@@ -165,17 +174,13 @@ func TestDelete(t *testing.T) {
 	err := dba.Delete(1)
 
 	// assert
-	if err != nil {
-		t.Fatalf("unexpected error: %v", err)
-	}
+	expectNoError(t, err)
 	want := []TodoItemModel{
 		{Id: 2, Description: "Test description 2", Completed: true},
 	}
 	todosInDb := []TodoItemModel{}
 	dba.db.Find(&todosInDb)
-	if !reflect.DeepEqual(todosInDb, want) {
-		t.Errorf("want: %v, got: %v", want, todosInDb)
-	}
+	expectEqual(t, want, todosInDb)
 }
 
 // TestDeleteNotFound Given some todo items in the database, when Delete is called with an id that does not exist, then an error should be returned.
@@ -194,7 +199,5 @@ func TestDeleteNotFound(t *testing.T) {
 	err := dba.Delete(3)
 
 	// assert
-	if err == nil {
-		t.Fatalf("expected error, got nil")
-	}
+	expectError(t, err)
 }
