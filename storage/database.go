@@ -21,12 +21,6 @@ type TodoItemModel struct {
 func (dba *DatabaseAccessor) InitDb() {
 	var err error
 	dba.db, err = gorm.Open(mysql.Open("root:root@/todolist?charset=utf8&parseTime=True&loc=Local"), &gorm.Config{})
-	// dba.db, err = gorm.Open("mysql", "root:root@/todolist?charset=utf8&parseTime=True&loc=Local")
-	if err != nil {
-		panic(err)
-	}
-	// TODO: Keep the table.
-	err = dba.db.Debug().Migrator().DropTable(&TodoItemModel{})
 	if err != nil {
 		panic(err)
 	}
