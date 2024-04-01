@@ -20,7 +20,50 @@
 
 ## Brief
 
-This project is a simple endeavor to learn _Go_, following the blog post [Build a Todolist API Server in Golang](https://www.fadhil-blog.dev/blog/golang-todolist/) with a few modifications.
+This project is a simple endeavor to learn _Go_, following the blog post [Build a Todolist API Server in Golang](https://www.fadhil-blog.dev/blog/golang-todolist/) with modifications.
+
+## Features
+
+- Add a task
+- Remove a task
+- Mark a task as done
+- List all tasks
+- List all tasks that are done
+- List all tasks that are not done
+
+## Getting Started
+
+1. Clone the repository and navigate to the directory
+
+```console
+git clone https://github.com/Lai-YT/todolist
+cd todolist
+```
+
+2. Create a docker container for the MySQL database
+
+```console
+./create-docker-container.sh
+```
+
+This will create a MySQL container named `todolist-mysql` with a database named `todolist`, serving on port `3306`.
+The default username and password are `root` and `root`, respectively. The data files of the database are mounted to the `./data` directory.
+
+For later use, you can start the container with the following command:
+
+```console
+docker start todolist-mysql
+```
+
+3. Run the API server
+
+```console
+go run todolist.go
+```
+
+There's also a frontend for this project, which was initially created by [themaxsandelin](https://github.com/themaxsandelin), modified by [sdil](https://github.com/sdil), and finally tailored by me. You can find it at [Lai-YT/todolist-frontend](https://github.com/Lai-YT/todolist-frontend).
+
+## Development
 
 The API server uses:
 
@@ -29,7 +72,9 @@ The API server uses:
 - Request routing using [gorilla/mux](https://github.com/gorilla/mux)
 - [Logrus](https://github.com/sirupsen/logrus) for logging
 
-There's also a frontend for this project, which was initially created by [themaxsandelin](https://github.com/themaxsandelin), modified by [sdil](https://github.com/sdil), and finally tailored by me. You can find it at [Lai-YT/todolist-frontend](https://github.com/Lai-YT/todolist-frontend).
+The tests use:
+
+- [gomock](https://github.com/uber-go/mock) for mocking
 
 ## License
 
