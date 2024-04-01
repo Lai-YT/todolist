@@ -12,8 +12,8 @@ PORT=3306
 MYSQL_ROOT_PASSWORD=root
 
 # If the .data directory does not exist, create it.
-if [ ! -d .data ]; then
-	mkdir .data
+if [ ! -d "$DATA_DIR" ]; then
+	mkdir -p "$DATA_DIR"
 fi
 # If the container does not exist, create it.
 if ! docker ps -a | grep $CONTAINER_NAME; then
