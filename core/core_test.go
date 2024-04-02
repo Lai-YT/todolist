@@ -62,12 +62,12 @@ func TestCreateItem(t *testing.T) {
 		Create(gomock.Any()).
 		DoAndReturn(func(item *TodoItem) (int, error) {
 			id := 1
-			item.Id = id
+			item.ID = id
 			return id, nil
 		})
 
 	// act
-	want := TodoItem{Id: 1, Description: "some description", Completed: false}
+	want := TodoItem{ID: 1, Description: "some description", Completed: false}
 	got := e.core.CreateItem(want.Description)
 
 	// assert
@@ -82,7 +82,7 @@ func TestUpdateItem(t *testing.T) {
 		Read(gomock.Any()).
 		DoAndReturn(func(func(TodoItem) bool) []TodoItem {
 			return []TodoItem{
-				{Id: 1, Description: "some description", Completed: false},
+				{ID: 1, Description: "some description", Completed: false},
 			}
 		})
 	e.mockAccessor.EXPECT().
@@ -90,8 +90,8 @@ func TestUpdateItem(t *testing.T) {
 		Return(nil)
 
 	// act:
-	want := TodoItem{Id: 1, Description: "some description", Completed: true}
-	got, err := e.core.UpdateItem(want.Id, want.Completed)
+	want := TodoItem{ID: 1, Description: "some description", Completed: true}
+	got, err := e.core.UpdateItem(want.ID, want.Completed)
 
 	// assert: the item should be updated and returned without error
 	e.expectNoError(err)
@@ -158,8 +158,8 @@ func TestGetItems(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	mockItems := [2]TodoItem{
-		{Id: 1, Description: "some description", Completed: false},
-		{Id: 2, Description: "another description", Completed: true},
+		{ID: 1, Description: "some description", Completed: false},
+		{ID: 2, Description: "another description", Completed: true},
 	}
 	e.mockAccessor.EXPECT().
 		Read(gomock.Any()).

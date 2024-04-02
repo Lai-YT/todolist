@@ -102,7 +102,7 @@ func TestCreateItem(t *testing.T) {
 	testDescription := "test"
 	e.mockCore.EXPECT().
 		CreateItem(testDescription).
-		Return(core.TodoItem{Id: 1, Description: testDescription, Completed: false})
+		Return(core.TodoItem{ID: 1, Description: testDescription, Completed: false})
 
 	// act
 	params := url.Values{
@@ -114,7 +114,7 @@ func TestCreateItem(t *testing.T) {
 
 	// assert
 	e.expectStatusCodeToBe(http.StatusOK)
-	want := core.TodoItem{Id: 1, Description: testDescription, Completed: false}
+	want := core.TodoItem{ID: 1, Description: testDescription, Completed: false}
 	got := core.TodoItem{}
 	e.expectUnmarshalWithoutError(&got)
 	e.expectEqual(want, got)
@@ -126,17 +126,17 @@ func TestUpdateItem(t *testing.T) {
 	e := newTestEnv(t)
 	pattern := "/todo/{id}"
 	e.router.HandleFunc(pattern, UpdateItem)
-	testId := 1
+	testID := 1
 	testCompleted := true
 	e.mockCore.EXPECT().
-		UpdateItem(testId, testCompleted).
-		Return(core.TodoItem{Id: testId} /* dummy */, nil)
+		UpdateItem(testID, testCompleted).
+		Return(core.TodoItem{ID: testID} /* dummy */, nil)
 
 	// act
 	params := url.Values{
 		"completed": []string{`true`},
 	}
-	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/todo/%d", testId), strings.NewReader(params.Encode()))
+	request, _ := http.NewRequest(http.MethodPost, fmt.Sprintf("/todo/%d", testID), strings.NewReader(params.Encode()))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	e.router.ServeHTTP(e.writer, request)
 
@@ -184,13 +184,13 @@ func TestDeleteItem(t *testing.T) {
 	e := newTestEnv(t)
 	pattern := "/todo/{id}"
 	e.router.HandleFunc(pattern, DeleteItem)
-	testId := 1
+	testID := 1
 	e.mockCore.EXPECT().
-		DeleteItem(testId).
+		DeleteItem(testID).
 		Return(nil)
 
 	// act
-	request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/todo/%d", testId), strings.NewReader(""))
+	request, _ := http.NewRequest(http.MethodDelete, fmt.Sprintf("/todo/%d", testID), strings.NewReader(""))
 	e.router.ServeHTTP(e.writer, request)
 
 	// assert
@@ -233,8 +233,8 @@ func TestGetItemsCompleted(t *testing.T) {
 	pattern := "/todo"
 	e.router.HandleFunc(pattern, GetItems)
 	todoItems := []core.TodoItem{
-		{Id: 1, Description: "test1", Completed: true},
-		{Id: 3, Description: "test3", Completed: true},
+		{ID: 1, Description: "test1", Completed: true},
+		{ID: 3, Description: "test3", Completed: true},
 	}
 	e.mockCore.EXPECT().
 		GetItems(true).
@@ -259,8 +259,8 @@ func TestGetItemIncomplete(t *testing.T) {
 	pattern := "/todo"
 	e.router.HandleFunc(pattern, GetItems)
 	todoItems := []core.TodoItem{
-		{Id: 2, Description: "test2", Completed: false},
-		{Id: 4, Description: "test4", Completed: false},
+		{ID: 2, Description: "test2", Completed: false},
+		{ID: 4, Description: "test4", Completed: false},
 	}
 	e.mockCore.EXPECT().
 		GetItems(false).
@@ -285,10 +285,10 @@ func TestGetItemsAll(t *testing.T) {
 	pattern := "/todo"
 	e.router.HandleFunc(pattern, GetItems)
 	todoItems := []core.TodoItem{
-		{Id: 1, Description: "test1", Completed: true},
-		{Id: 2, Description: "test2", Completed: false},
-		{Id: 3, Description: "test3", Completed: true},
-		{Id: 4, Description: "test4", Completed: false},
+		{ID: 1, Description: "test1", Completed: true},
+		{ID: 2, Description: "test2", Completed: false},
+		{ID: 3, Description: "test3", Completed: true},
+		{ID: 4, Description: "test4", Completed: false},
 	}
 	e.mockCore.EXPECT().
 		GetItems(true).
@@ -309,6 +309,6 @@ func TestGetItemsAll(t *testing.T) {
 	got := []core.TodoItem{}
 	e.expectUnmarshalWithoutError(&got)
 	// NOTE: Sort the slices before comparing them because the order of the items is not guaranteed.
-	sort.Slice(got, func(i, j int) bool { return got[i].Id < got[j].Id })
+	sort.Slice(got, func(i, j int) bool { return got[i].ID < got[j].ID })
 	e.expectEqual(want, got)
 }

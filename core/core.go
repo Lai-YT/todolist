@@ -26,17 +26,17 @@ func NewCore(accessor StorageAccessor) *TheCore {
 }
 
 type TodoItem struct {
-	Id          int
+	ID          int
 	Description string
 	Completed   bool
 }
 
 type TodoItemNotFoundError struct {
-	Id int
+	ID int
 }
 
 func (e TodoItemNotFoundError) Error() string {
-	return fmt.Sprintf("TodoItem with id %d not found", e.Id)
+	return fmt.Sprintf("TodoItem with id %d not found", e.ID)
 }
 
 func (c *TheCore) CreateItem(description string) TodoItem {
@@ -51,10 +51,10 @@ func (c *TheCore) CreateItem(description string) TodoItem {
 
 func (c *TheCore) UpdateItem(id int, completed bool) (TodoItem, error) {
 	todos := c.accessor.Read(func(todo TodoItem) bool {
-		return todo.Id == id
+		return todo.ID == id
 	})
 	if len(todos) == 0 {
-		err := TodoItemNotFoundError{Id: id}
+		err := TodoItemNotFoundError{ID: id}
 		log.Warn("CORE: ", err)
 		return TodoItem{}, err
 	}

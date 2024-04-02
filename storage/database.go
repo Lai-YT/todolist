@@ -12,7 +12,7 @@ type DatabaseAccessor struct {
 }
 
 type TodoItemModel struct {
-	Id          int `gorm:"primary_key"`
+	ID          int `gorm:"primary_key"`
 	Description string
 	Completed   bool
 }
@@ -48,8 +48,8 @@ func (dba *DatabaseAccessor) Create(todo *core.TodoItem) (id int, e error) {
 	// We access it from the database to get the Id.
 	var todoModel TodoItemModel
 	dba.db.Last(&todoModel)
-	todo.Id = todoModel.Id
-	return todoModel.Id, nil
+	todo.ID = todoModel.ID
+	return todoModel.ID, nil
 }
 
 func (dba *DatabaseAccessor) Read(where func(core.TodoItem) bool) []core.TodoItem {
@@ -61,7 +61,7 @@ func (dba *DatabaseAccessor) Read(where func(core.TodoItem) bool) []core.TodoIte
 	log.Info("DB: Filtering TodoItemModels.")
 	var todoItems []core.TodoItem
 	for _, todoModel := range todoModels {
-		if item := (core.TodoItem{Id: todoModel.Id, Description: todoModel.Description, Completed: todoModel.Completed}); where(item) {
+		if item := (core.TodoItem{ID: todoModel.ID, Description: todoModel.Description, Completed: todoModel.Completed}); where(item) {
 			todoItems = append(todoItems, item)
 		}
 	}
@@ -70,13 +70,13 @@ func (dba *DatabaseAccessor) Read(where func(core.TodoItem) bool) []core.TodoIte
 
 func (dba *DatabaseAccessor) Update(todo core.TodoItem) error {
 	var todoModel TodoItemModel
-	result := dba.db.First(&todoModel, todo.Id)
+	result := dba.db.First(&todoModel, todo.ID)
 	if result.Error != nil {
 		log.Warn("DB: ", result.Error)
 		return result.Error
 	}
 
-	log.WithFields(log.Fields{"id": todo.Id}).Info("DB: Updating TodoItemModel.")
+	log.WithFields(log.Fields{"id": todo.ID}).Info("DB: Updating TodoItemModel.")
 	todoModel.Description = todo.Description
 	todoModel.Completed = todo.Completed
 	dba.db.Save(&todoModel)

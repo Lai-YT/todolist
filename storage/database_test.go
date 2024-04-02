@@ -80,11 +80,11 @@ func TestCreate(t *testing.T) {
 
 	// assert
 	expectNoError(t, err)
-	if todo.Id != id {
-		t.Errorf("Id not set on todo item correctly, expected %v, got %v", id, todo.Id)
+	if todo.ID != id {
+		t.Errorf("ID not set on todo item correctly, expected %v, got %v", id, todo.ID)
 	}
 	want := []TodoItemModel{
-		{Id: id, Description: "Test description", Completed: false},
+		{ID: id, Description: "Test description", Completed: false},
 	}
 	todosInDb := []TodoItemModel{}
 	dba.db.Find(&todosInDb)
@@ -99,12 +99,12 @@ func TestRead(t *testing.T) {
 	defer dba.closeTestDb()
 	match := "Test description 1"
 	dba.db.Create(&[]TodoItemModel{
-		{Id: 1, Description: match, Completed: false},
-		{Id: 2, Description: "Test description 2", Completed: true},
+		{ID: 1, Description: match, Completed: false},
+		{ID: 2, Description: "Test description 2", Completed: true},
 	})
 
 	// act
-	want := core.TodoItem{Id: 1, Description: "Test description 1", Completed: false}
+	want := core.TodoItem{ID: 1, Description: "Test description 1", Completed: false}
 	got := dba.Read(func(item core.TodoItem) bool { return item.Description == match })
 
 	// assert
@@ -120,21 +120,21 @@ func TestUpdate(t *testing.T) {
 	dba := DatabaseAccessor{}
 	dba.initTestDb()
 	defer dba.closeTestDb()
-	targetId := 2
+	targetID := 2
 	dba.db.Create(&[]TodoItemModel{
-		{Id: 1, Description: "Test description 1", Completed: false},
-		{Id: targetId, Description: "Test description 2", Completed: true},
+		{ID: 1, Description: "Test description 1", Completed: false},
+		{ID: targetID, Description: "Test description 2", Completed: true},
 	})
 
 	// act
-	updatedTodo := core.TodoItem{Id: targetId, Description: "Updated description", Completed: false}
+	updatedTodo := core.TodoItem{ID: targetID, Description: "Updated description", Completed: false}
 	err := dba.Update(updatedTodo)
 
 	// assert
 	expectNoError(t, err)
 	want := []TodoItemModel{
-		{Id: 1, Description: "Test description 1", Completed: false},
-		{Id: targetId, Description: updatedTodo.Description, Completed: updatedTodo.Completed},
+		{ID: 1, Description: "Test description 1", Completed: false},
+		{ID: targetID, Description: updatedTodo.Description, Completed: updatedTodo.Completed},
 	}
 	todosInDb := []TodoItemModel{}
 	dba.db.Find(&todosInDb)
@@ -148,12 +148,12 @@ func TestUpdateNotFound(t *testing.T) {
 	dba.initTestDb()
 	defer dba.closeTestDb()
 	dba.db.Create(&[]TodoItemModel{
-		{Id: 1, Description: "Test description 1", Completed: false},
-		{Id: 2, Description: "Test description 2", Completed: true},
+		{ID: 1, Description: "Test description 1", Completed: false},
+		{ID: 2, Description: "Test description 2", Completed: true},
 	})
 
 	// act
-	nonExistentTodo := core.TodoItem{Id: 3, Description: "Updated description", Completed: false}
+	nonExistentTodo := core.TodoItem{ID: 3, Description: "Updated description", Completed: false}
 	err := dba.Update(nonExistentTodo)
 
 	// assert
@@ -167,8 +167,8 @@ func TestDelete(t *testing.T) {
 	dba.initTestDb()
 	defer dba.closeTestDb()
 	dba.db.Create(&[]TodoItemModel{
-		{Id: 1, Description: "Test description 1", Completed: false},
-		{Id: 2, Description: "Test description 2", Completed: true},
+		{ID: 1, Description: "Test description 1", Completed: false},
+		{ID: 2, Description: "Test description 2", Completed: true},
 	})
 
 	// act
@@ -177,7 +177,7 @@ func TestDelete(t *testing.T) {
 	// assert
 	expectNoError(t, err)
 	want := []TodoItemModel{
-		{Id: 2, Description: "Test description 2", Completed: true},
+		{ID: 2, Description: "Test description 2", Completed: true},
 	}
 	todosInDb := []TodoItemModel{}
 	dba.db.Find(&todosInDb)
@@ -191,8 +191,8 @@ func TestDeleteNotFound(t *testing.T) {
 	dba.initTestDb()
 	defer dba.closeTestDb()
 	items := []TodoItemModel{
-		{Id: 1, Description: "Test description 1", Completed: false},
-		{Id: 2, Description: "Test description 2", Completed: true},
+		{ID: 1, Description: "Test description 1", Completed: false},
+		{ID: 2, Description: "Test description 2", Completed: true},
 	}
 	dba.db.Create(&items)
 
