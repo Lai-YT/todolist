@@ -2,6 +2,7 @@
 
 <div align="center">
 
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Lai-YT/todolist)
 [![CI](https://github.com/Lai-YT/todolist/actions/workflows/ci.yml/badge.svg)](https://github.com/Lai-YT/todolist/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/Lai-YT/todolist/graph/badge.svg?token=VMJZ7U806J)](https://codecov.io/gh/Lai-YT/todolist)
 [![GitHub Issues Open](https://img.shields.io/github/issues/Lai-YT/todolist.svg)](https://github.com/Lai-YT/todolist/issues)
