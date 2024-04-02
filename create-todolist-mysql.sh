@@ -18,6 +18,7 @@ fi
 # If the container does not exist, create it.
 if ! docker ps -a | grep $CONTAINER_NAME; then
 	docker run \
+		--user "$(id -u)":"$(id -g)" \
 		-dp $PORT:3306 \
 		-v "$DATA_DIR":/var/lib/mysql \
 		--name "$CONTAINER_NAME" \
