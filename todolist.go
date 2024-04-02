@@ -3,12 +3,13 @@ package main
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
-	"github.com/rs/cors"
-	log "github.com/sirupsen/logrus"
 	"todolist/core"
 	"todolist/endpoint"
 	"todolist/storage"
+
+	"github.com/gorilla/mux"
+	"github.com/rs/cors"
+	log "github.com/sirupsen/logrus"
 )
 
 // init is executed when the program first begins (before main).

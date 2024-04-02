@@ -1,5 +1,5 @@
 GO ?= go
-GOFMT ?= gofmt "-s"
+GOFMT ?= gofumpt
 GO_VERSION=$(shell $(GO) version | cut -c 14- | cut -d' ' -f1 | cut -d'.' -f2)
 PACKAGES ?= $(shell $(GO) list ./...)
 GOFILES := $(shell find . -name "*.go")
@@ -57,8 +57,9 @@ misspell:
 
 .PHONY: tools
 tools:
-	$(GO) install honnef.co/go/tools/cmd/staticcheck; \
-	$(GO) install github.com/client9/misspell/cmd/misspell; \
+	$(GO) install mvdan.cc/gofumpt@latest; \
+	$(GO) install honnef.co/go/tools/cmd/staticcheck@latest; \
+	$(GO) install github.com/client9/misspell/cmd/misspell@latest;
 
 .PHONY: help
 help:
