@@ -50,6 +50,15 @@ cd todolist
 This will create a MySQL container named `todolist-mysql` with a database named `todolist`, serving on port `3306`.
 The default username and password are `root` and `root`, respectively. The data files of the database are mounted to the `./data` directory.
 
+> [!note]
+> The execution of the script may fail with the following error:
+> 
+> ```console
+> ERROR 2002 (HY000): Can't connect to local MySQL server through socket '/var/run/mysqld/mysqld.sock' (2)
+> ```
+>
+> Run the script again, and it should work.
+
 For later use, you can start the container with the following command:
 
 ```console
