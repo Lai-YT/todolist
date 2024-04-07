@@ -10,6 +10,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/cors"
 	log "github.com/sirupsen/logrus"
+	"gorm.io/driver/mysql"
+	"gorm.io/gorm"
 )
 
 // init is executed when the program first begins (before main).
@@ -21,7 +23,7 @@ func init() {
 
 func main() {
 	accessor := &storage.DatabaseAccessor{}
-	accessor.InitDb()
+	accessor.InitDb(mysql.Open("root:root@/todolist?charset=utf8&parseTime=True&loc=Local"), &gorm.Config{})
 	defer accessor.CloseDb()
 	theCore := core.NewCore(accessor)
 	endpoint.SetCore(theCore)

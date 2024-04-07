@@ -1,10 +1,10 @@
 package storage
 
 import (
-	log "github.com/sirupsen/logrus"
-	"gorm.io/driver/mysql"
-	"gorm.io/gorm"
 	"todolist/core"
+
+	log "github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
 
 type DatabaseAccessor struct {
@@ -18,9 +18,9 @@ type TodoItemModel struct {
 }
 
 // InitDb initializes the database connection and creates the TodoItemModel table.
-func (dba *DatabaseAccessor) InitDb() {
+func (dba *DatabaseAccessor) InitDb(dialect gorm.Dialector, config *gorm.Config) {
 	var err error
-	dba.db, err = gorm.Open(mysql.Open("root:root@/todolist?charset=utf8&parseTime=True&loc=Local"), &gorm.Config{})
+	dba.db, err = gorm.Open(dialect, config)
 	if err != nil {
 		panic(err)
 	}

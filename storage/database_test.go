@@ -21,37 +21,23 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
-// NOTE: Errors on the database panics because it means the test setup is incorrect.
-
-func (dba *DatabaseAccessor) initTestDb() {
-	var err error
+func initTestDb(dba *DatabaseAccessor) {
 	// NOTE: Using the in-memory SQLite database for testing purposes.
-	dba.db, err = gorm.Open(sqlite.Open("file::memory:"), &gorm.Config{
+	dba.InitDb(sqlite.Open("file::memory:"), &gorm.Config{
 		Logger: logger.Discard,
 	})
-	if err != nil {
-		panic(err)
-	}
-	err = dba.db.AutoMigrate(&TodoItemModel{})
-	if err != nil {
-		panic(err)
-	}
 }
 
-func (dba *DatabaseAccessor) closeTestDb() {
-	err := dba.db.Migrator().DropTable(&TodoItemModel{})
-	if err != nil {
-		panic(err)
-	}
-	dba.db = nil
+func closeTestDb(dba *DatabaseAccessor) {
+	dba.CloseDb()
 }
 
 // TestCreate Given a todo item, when Create is called, then the todo item should be created in the database and the id should be set and returned.
 func TestCreate(t *testing.T) {
 	// arrange
 	dba := DatabaseAccessor{}
-	dba.initTestDb()
-	defer dba.closeTestDb()
+	initTestDb(&dba)
+	defer closeTestDb(&dba)
 
 	// act
 	todo := core.TodoItem{Description: "Test description", Completed: false}
@@ -73,8 +59,8 @@ func TestCreate(t *testing.T) {
 func TestRead(t *testing.T) {
 	// arrange
 	dba := DatabaseAccessor{}
-	dba.initTestDb()
-	defer dba.closeTestDb()
+	initTestDb(&dba)
+	defer closeTestDb(&dba)
 	match := "Test description 1"
 	dba.db.Create(&[]TodoItemModel{
 		{ID: 1, Description: match, Completed: false},
@@ -95,8 +81,8 @@ func TestRead(t *testing.T) {
 func TestUpdate(t *testing.T) {
 	// arrange
 	dba := DatabaseAccessor{}
-	dba.initTestDb()
-	defer dba.closeTestDb()
+	initTestDb(&dba)
+	defer closeTestDb(&dba)
 	targetID := 2
 	dba.db.Create(&[]TodoItemModel{
 		{ID: 1, Description: "Test description 1", Completed: false},
@@ -123,8 +109,8 @@ func TestUpdate(t *testing.T) {
 func TestUpdateNotFound(t *testing.T) {
 	// arrange
 	dba := DatabaseAccessor{}
-	dba.initTestDb()
-	defer dba.closeTestDb()
+	initTestDb(&dba)
+	defer closeTestDb(&dba)
 	dba.db.Create(&[]TodoItemModel{
 		{ID: 1, Description: "Test description 1", Completed: false},
 		{ID: 2, Description: "Test description 2", Completed: true},
@@ -142,8 +128,8 @@ func TestUpdateNotFound(t *testing.T) {
 func TestDelete(t *testing.T) {
 	// arrange
 	dba := DatabaseAccessor{}
-	dba.initTestDb()
-	defer dba.closeTestDb()
+	initTestDb(&dba)
+	defer closeTestDb(&dba)
 	dba.db.Create(&[]TodoItemModel{
 		{ID: 1, Description: "Test description 1", Completed: false},
 		{ID: 2, Description: "Test description 2", Completed: true},
@@ -167,8 +153,8 @@ func TestDelete(t *testing.T) {
 func TestDeleteNotFound(t *testing.T) {
 	// arrange
 	dba := DatabaseAccessor{}
-	dba.initTestDb()
-	defer dba.closeTestDb()
+	initTestDb(&dba)
+	defer closeTestDb(&dba)
 	items := []TodoItemModel{
 		{ID: 1, Description: "Test description 1", Completed: false},
 		{ID: 2, Description: "Test description 2", Completed: true},
