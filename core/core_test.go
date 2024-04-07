@@ -4,10 +4,10 @@ import (
 	"errors"
 	"io"
 	"os"
-	"reflect"
 	"testing"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
 	"go.uber.org/mock/gomock"
 )
 
@@ -33,27 +33,6 @@ func newTestEnv(t *testing.T) *testEnv {
 	return &testEnv{t, ctrl, mockAccessor, theCore}
 }
 
-// expectNoError Checks if an error is nil. If not, it fails the test as an error.
-func (e *testEnv) expectNoError(err error) {
-	if err != nil {
-		e.t.Errorf("unexpected error: %v", err)
-	}
-}
-
-// expectError Checks if an error is not nil. If it is, it fails the test as an error.
-func (e *testEnv) expectError(err error) {
-	if err == nil {
-		e.t.Errorf("expected error")
-	}
-}
-
-// expectEqual Checks if two values are equal with reflect.DeepEqual. If not, it fails the test as an error.
-func (e *testEnv) expectEqual(want, got any) {
-	if !reflect.DeepEqual(want, got) {
-		e.t.Errorf("want: %v, got: %v", want, got)
-	}
-}
-
 // TestCreateItem Given a description and the storage accessor returns an id, when CreateItem is called, then the item is created and returned with the id set.
 func TestCreateItem(t *testing.T) {
 	// arrange
@@ -71,7 +50,7 @@ func TestCreateItem(t *testing.T) {
 	got := e.core.CreateItem(want.Description)
 
 	// assert
-	e.expectEqual(want, got)
+	assert.Equal(t, want, got)
 }
 
 // TestUpdateItem Given an item of a specific id is returned by the storage accessor, when UpdateItem is called, then the item is updated and returned with the new completed status.
@@ -89,13 +68,14 @@ func TestUpdateItem(t *testing.T) {
 		Update(gomock.Any()).
 		Return(nil)
 
-	// act:
+	// act
 	want := TodoItem{ID: 1, Description: "some description", Completed: true}
 	got, err := e.core.UpdateItem(want.ID, want.Completed)
 
 	// assert: the item should be updated and returned without error
-	e.expectNoError(err)
-	e.expectEqual(want, got)
+	if assert.NoError(t, err) {
+		assert.Equal(t, want, got)
+	}
 }
 
 // TestUpdateItemNotFound Given an item of a specific id is not returned by the storage accessor, when UpdateItem is called, then an ItemNotFoundError is returned.
@@ -108,16 +88,13 @@ func TestUpdateItemNotFound(t *testing.T) {
 			return []TodoItem{}
 		})
 
-	// act:
+	// act
 	id := 1
 	completed := true
 	_, err := e.core.UpdateItem(id, completed)
 
 	// assert: an error should be returned
-	e.expectError(err)
-	if reflect.TypeOf(err).String() != "core.TodoItemNotFoundError" {
-		t.Errorf("unexpected error: %v", err)
-	}
+	assert.IsType(t, TodoItemNotFoundError{}, err)
 }
 
 // TestDeleteItem Given an id and the storage accessor returns no error, when DeleteItem is called, then no error is returned.
@@ -133,7 +110,7 @@ func TestDeleteItem(t *testing.T) {
 	err := e.core.DeleteItem(id)
 
 	// assert
-	e.expectNoError(err)
+	assert.NoError(t, err)
 }
 
 // TestDeleteItemError Given an id and the storage accessor returns an error, when DeleteItem is called, then the error is returned.
@@ -149,7 +126,7 @@ func TestDeleteItemError(t *testing.T) {
 	err := e.core.DeleteItem(id)
 
 	// assert
-	e.expectError(err)
+	assert.Error(t, err)
 	// NOTE: There's no guarantee that the error is the same error that was returned by the storage accessor.
 }
 
@@ -174,5 +151,5 @@ func TestGetItems(t *testing.T) {
 	got := e.core.GetItems(completed)
 
 	// assert
-	e.expectEqual(want, got)
+	assert.Equal(t, want, got)
 }

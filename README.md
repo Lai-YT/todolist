@@ -85,6 +85,7 @@ The API server uses:
 The tests use:
 
 - [gomock](https://github.com/uber-go/mock) for mocking
+- [testify](https://github.com/stretchr/testify) for easy assertions
 
 ## License
 
