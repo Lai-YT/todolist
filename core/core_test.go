@@ -1,10 +1,12 @@
-package core
+package core_test
 
 import (
 	"errors"
 	"io"
 	"os"
 	"testing"
+
+	core "todolist/core"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
@@ -23,13 +25,13 @@ type testEnv struct {
 	t            *testing.T
 	ctrl         *gomock.Controller
 	mockAccessor *MockStorageAccessor
-	core         *TheCore
+	core         *core.TheCore
 }
 
 func newTestEnv(t *testing.T) *testEnv {
 	ctrl := gomock.NewController(t)
 	mockAccessor := NewMockStorageAccessor(ctrl)
-	theCore := NewCore(mockAccessor)
+	theCore := core.NewCore(mockAccessor)
 	return &testEnv{t, ctrl, mockAccessor, theCore}
 }
 
@@ -39,14 +41,14 @@ func TestCreateItem(t *testing.T) {
 	e := newTestEnv(t)
 	e.mockAccessor.EXPECT().
 		Create(gomock.Any()).
-		DoAndReturn(func(item *TodoItem) (int, error) {
+		DoAndReturn(func(item *core.TodoItem) (int, error) {
 			id := 1
 			item.ID = id
 			return id, nil
 		})
 
 	// act
-	want := TodoItem{ID: 1, Description: "some description", Completed: false}
+	want := core.TodoItem{ID: 1, Description: "some description", Completed: false}
 	got := e.core.CreateItem(want.Description)
 
 	// assert
@@ -59,8 +61,8 @@ func TestUpdateItem(t *testing.T) {
 	e := newTestEnv(t)
 	e.mockAccessor.EXPECT().
 		Read(gomock.Any()).
-		DoAndReturn(func(func(TodoItem) bool) []TodoItem {
-			return []TodoItem{
+		DoAndReturn(func(func(core.TodoItem) bool) []core.TodoItem {
+			return []core.TodoItem{
 				{ID: 1, Description: "some description", Completed: false},
 			}
 		})
@@ -69,7 +71,7 @@ func TestUpdateItem(t *testing.T) {
 		Return(nil)
 
 	// act
-	want := TodoItem{ID: 1, Description: "some description", Completed: true}
+	want := core.TodoItem{ID: 1, Description: "some description", Completed: true}
 	got, err := e.core.UpdateItem(want.ID, want.Completed)
 
 	// assert: the item should be updated and returned without error
@@ -84,8 +86,8 @@ func TestUpdateItemNotFound(t *testing.T) {
 	e := newTestEnv(t)
 	e.mockAccessor.EXPECT().
 		Read(gomock.Any()).
-		DoAndReturn(func(func(TodoItem) bool) []TodoItem {
-			return []TodoItem{}
+		DoAndReturn(func(func(core.TodoItem) bool) []core.TodoItem {
+			return []core.TodoItem{}
 		})
 
 	// act
@@ -94,7 +96,7 @@ func TestUpdateItemNotFound(t *testing.T) {
 	_, err := e.core.UpdateItem(id, completed)
 
 	// assert: an error should be returned
-	assert.IsType(t, TodoItemNotFoundError{}, err)
+	assert.IsType(t, core.TodoItemNotFoundError{}, err)
 }
 
 // TestDeleteItem Given an id and the storage accessor returns no error, when DeleteItem is called, then no error is returned.
@@ -134,20 +136,20 @@ func TestDeleteItemError(t *testing.T) {
 func TestGetItems(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
-	mockItems := [2]TodoItem{
+	mockItems := [2]core.TodoItem{
 		{ID: 1, Description: "some description", Completed: false},
 		{ID: 2, Description: "another description", Completed: true},
 	}
 	e.mockAccessor.EXPECT().
 		Read(gomock.Any()).
-		DoAndReturn(func(func(TodoItem) bool) []TodoItem {
+		DoAndReturn(func(func(core.TodoItem) bool) []core.TodoItem {
 			// With completed = false.
-			return []TodoItem{mockItems[0]}
+			return []core.TodoItem{mockItems[0]}
 		})
 
 	// act
 	completed := false
-	want := []TodoItem{mockItems[0]}
+	want := []core.TodoItem{mockItems[0]}
 	got := e.core.GetItems(completed)
 
 	// assert

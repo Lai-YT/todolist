@@ -5,7 +5,7 @@ PACKAGES ?= $(shell $(GO) list ./...)
 GOFILES := $(shell find . -name "*.go")
 TESTTAGS ?= "-test.shuffle=on"
 COVERPROFILE ?= coverage.out
-COVEREXCLUDE ?= "mock"
+COVEREXCLUDE ?= "$$^"
 
 .PHONY: test
 test:

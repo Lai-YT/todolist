@@ -1,4 +1,4 @@
-package endpoint
+package endpoint_test
 
 import (
 	"encoding/json"
@@ -15,6 +15,7 @@ import (
 	"testing"
 
 	"todolist/core"
+	"todolist/endpoint"
 
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
@@ -40,7 +41,7 @@ type testEnv struct {
 func newTestEnv(t *testing.T) *testEnv {
 	ctrl := gomock.NewController(t)
 	mockCore := NewMockCore(ctrl)
-	SetCore(mockCore)
+	endpoint.SetCore(mockCore)
 	return &testEnv{
 		t:        t,
 		router:   mux.NewRouter(),
@@ -76,7 +77,7 @@ func TestHealthz(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/healthz"
-	e.router.HandleFunc(pattern, Healthz)
+	e.router.HandleFunc(pattern, endpoint.Healthz)
 
 	// act: make a request to the /healthz endpoint
 	request, _ := http.NewRequest(http.MethodGet, pattern, nil)
@@ -98,7 +99,7 @@ func TestCreateItem(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/todo"
-	e.router.HandleFunc(pattern, CreateItem)
+	e.router.HandleFunc(pattern, endpoint.CreateItem)
 	testDescription := "test"
 	e.mockCore.EXPECT().
 		CreateItem(testDescription).
@@ -125,7 +126,7 @@ func TestUpdateItem(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/todo/{id}"
-	e.router.HandleFunc(pattern, UpdateItem)
+	e.router.HandleFunc(pattern, endpoint.UpdateItem)
 	testID := 1
 	testCompleted := true
 	e.mockCore.EXPECT().
@@ -153,7 +154,7 @@ func TestUpdateItemError(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/todo/{id}"
-	e.router.HandleFunc(pattern, UpdateItem)
+	e.router.HandleFunc(pattern, endpoint.UpdateItem)
 	e.mockCore.EXPECT().
 		UpdateItem(gomock.Any(), gomock.Any()).
 		Return(core.TodoItem{} /* dummy */, errors.New("test error"))
@@ -183,7 +184,7 @@ func TestDeleteItem(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/todo/{id}"
-	e.router.HandleFunc(pattern, DeleteItem)
+	e.router.HandleFunc(pattern, endpoint.DeleteItem)
 	testID := 1
 	e.mockCore.EXPECT().
 		DeleteItem(testID).
@@ -206,7 +207,7 @@ func TestDeleteItemError(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/todo/{id}"
-	e.router.HandleFunc(pattern, DeleteItem)
+	e.router.HandleFunc(pattern, endpoint.DeleteItem)
 	e.mockCore.EXPECT().
 		DeleteItem(gomock.Any()).
 		Return(errors.New("test error"))
@@ -231,7 +232,7 @@ func TestGetItemsCompleted(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/todo"
-	e.router.HandleFunc(pattern, GetItems)
+	e.router.HandleFunc(pattern, endpoint.GetItems)
 	todoItems := []core.TodoItem{
 		{ID: 1, Description: "test1", Completed: true},
 		{ID: 3, Description: "test3", Completed: true},
@@ -257,7 +258,7 @@ func TestGetItemIncomplete(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/todo"
-	e.router.HandleFunc(pattern, GetItems)
+	e.router.HandleFunc(pattern, endpoint.GetItems)
 	todoItems := []core.TodoItem{
 		{ID: 2, Description: "test2", Completed: false},
 		{ID: 4, Description: "test4", Completed: false},
@@ -283,7 +284,7 @@ func TestGetItemsAll(t *testing.T) {
 	// arrange
 	e := newTestEnv(t)
 	pattern := "/todo"
-	e.router.HandleFunc(pattern, GetItems)
+	e.router.HandleFunc(pattern, endpoint.GetItems)
 	todoItems := []core.TodoItem{
 		{ID: 1, Description: "test1", Completed: true},
 		{ID: 2, Description: "test2", Completed: false},
